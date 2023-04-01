@@ -1,9 +1,9 @@
 use std::fs::{create_dir_all, remove_dir_all};
 
 use common::{
-    extensions::*,
+    extensions::{Extensions, PathExt},
     make_path,
-    path::{PathBuf, PathsError},
+    path::{PathBuf, Error},
 };
 
 #[derive(Debug)]
@@ -69,11 +69,15 @@ impl Paths {
         create_dir_all(&self.staging_bin)?;
         create_dir_all(&self.staging_plugins)?;
         create_dir_all(&self.staging_config)?;
+        Ok(())
+    }
+
+    pub fn create_fomod(&self) -> anyhow::Result<()> {
         create_dir_all(&self.staging_fomod)?;
         Ok(())
     }
 
-    fn project_root() -> Result<PathBuf, PathsError> {
+    fn project_root() -> Result<PathBuf, Error> {
         let manifest_dir = PathBuf::new(env!("CARGO_MANIFEST_DIR"))?;
         let exe_path = std::env::current_exe()?;
         let root = manifest_dir.common_root(exe_path)?;
@@ -83,12 +87,12 @@ impl Paths {
 
     // This will be the /target directory, or something like /target/x86_64-pc-windows-msvc depending
     // on cargo's invocation and options
-    fn target_platform_path() -> Result<PathBuf, PathsError> {
+    fn target_platform_path() -> Result<PathBuf, Error> {
         let root = std::env::current_exe()?
             .normalize()?
             .ancestors()
             .nth(2)
-            .ok_or(PathsError::NoParent)?
+            .ok_or(Error::NoParent)?
             .normalize_virtually()?;
 
         Ok(root)
